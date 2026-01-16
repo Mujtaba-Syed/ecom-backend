@@ -39,7 +39,13 @@ class ProductDetailView(generics.RetrieveUpdateAPIView):
 
 
 class ProductListView(generics.ListAPIView):
-    """List products (for single product, returns one product)"""
-    queryset = Product.objects.all()
+    """List products (filterable by category)"""
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = Product.objects.filter(is_available=True)
+        category_id = self.request.query_params.get('category', None)
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset

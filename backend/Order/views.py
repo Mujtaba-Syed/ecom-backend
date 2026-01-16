@@ -6,6 +6,7 @@ import logging
 from .models import Order
 from .serializers import OrderSerializer, OrderCreateSerializer
 from Products.models import Product
+from Address.models import Address
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ class OrderListView(generics.ListCreateAPIView):
             serializer.is_valid(raise_exception=True)
             product_id = serializer.validated_data['product_id']
             quantity = serializer.validated_data['quantity']
-            shipping_address = serializer.validated_data['shipping_address']
+            shipping_address_id = serializer.validated_data.get('shipping_address_id')
+            shipping_address_text = serializer.validated_data.get('shipping_address', '')
 
             try:
                 product = Product.objects.get(id=product_id)
@@ -44,6 +46,16 @@ class OrderListView(generics.ListCreateAPIView):
             if product.stock < quantity:
                 return Response({'error': 'Insufficient stock'}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Get shipping address
+            shipping_address_obj = None
+            if shipping_address_id:
+                try:
+                    shipping_address_obj = Address.objects.get(id=shipping_address_id, user=request.user)
+                except Address.DoesNotExist:
+                    return Response({'error': 'Shipping address not found'}, status=status.HTTP_404_NOT_FOUND)
+            elif not shipping_address_text:
+                return Response({'error': 'Either shipping_address_id or shipping_address is required'}, status=status.HTTP_400_BAD_REQUEST)
+
             try:
                 with transaction.atomic():
                     total_price = product.price * quantity
@@ -52,7 +64,8 @@ class OrderListView(generics.ListCreateAPIView):
                         product=product,
                         quantity=quantity,
                         total_price=total_price,
-                        shipping_address=shipping_address
+                        shipping_address=shipping_address_obj,
+                        shipping_address_text=shipping_address_text if not shipping_address_obj else None
                     )
 
                     # Update product stock

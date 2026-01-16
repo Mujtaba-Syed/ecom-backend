@@ -40,9 +40,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('AuthUser.urls')),
     path('api/products/', include('Products.urls')),
+    path('api/categories/', include('Category.urls')),
     path('api/cart/', include('Cart.urls')),
     path('api/orders/', include('Order.urls')),
     path('api/reviews/', include('Review.urls')),
+    path('api/wishlist/', include('Wishlist.urls')),
+    path('api/addresses/', include('Address.urls')),
+    path('api/payments/', include('Payment.urls')),
     
     # Swagger/OpenAPI URLs
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),

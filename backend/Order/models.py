@@ -19,7 +19,8 @@ class Order(models.Model):
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    shipping_address = models.TextField()
+    shipping_address = models.ForeignKey('Address.Address', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    shipping_address_text = models.TextField(blank=True, null=True, help_text="Fallback text address if Address model is not used")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
